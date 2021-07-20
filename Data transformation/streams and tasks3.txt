@@ -1,0 +1,39 @@
+create or replace stream day_wise_stream on table "COVID_DATASET"."PUBLIC"."DAY_WISE";
+
+SHOW STREAMS;
+
+DESCRIBE STREAM day_wise_stream;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('day_wise_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('day_wise_stream')) as stream_offset;
+
+select * from "COVID_DATASET"."PUBLIC"."DAY_WISE";
+
+  copy into "COVID_DATASET"."PUBLIC"."DAY_WISE"
+  from 
+    (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,current_timestamp(3) from @day_wise_stage);
+ 
+truncate table "COVID_DATASET"."PUBLIC"."DAY_WISE";
+
+select * from day_wise_stream;
+
+create or replace task day_wise_task
+    warehouse = compute_wh 
+    schedule  = '1 minute'
+  when
+    system$stream_has_data('day_wise_stream')
+  as
+    merge into "COVID_DATASET"."PUBLIC"."DAY_WISE_AGGREGATED" n
+    using (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14 from day_wise_stream)r1 on n.$1=r1.$1
+    when matched then update set n.$2=r1.$2+n.$2, n.$3=r1.$3+n.$3, n.$4=r1.$4+n.$4,n.$5=r1.$5+n.$5,n.$6=r1.$6,n.$7=r1.$7,n.$8=r1.$8,n.$9=r1.$9,n.$10=r1.$10,n.$11=r1.$11,n.$12=r1.$12,n.$13=r1.$13,n.$14=r1.$14
+    when not matched then insert values (r1.$1,r1.$2,r1.$3,r1.$4,r1.$5,r1.$6,r1.$7,r1.$8,r1.$9,r1.$10,r1.$11,r1.$12,r1.$13,r1.$14)
+;
+desc task day_wise_task;
+
+alter task day_wise_task resume;
+
+alter task day_wise_task suspend;
+
+select * from "COVID_DATASET"."PUBLIC"."DAY_WISE_AGGREGATED";
+truncate table "COVID_DATASET"."PUBLIC"."DAY_WISE_AGGREGATED";

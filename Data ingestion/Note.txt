@@ -1,0 +1,15 @@
+*in the original usage all the dataset files are placed in the same folder as KafkaProducer. It is a requirement but this too can be changed by a coder.
+
+*The timestamps in each row(added at producer side) is used by data recon for accurate results. the current version requires this though it can be configgured to work without timestamps
+
+* time in data recon can be set to any value from present to past in the format specified. It will give data reconciliation of that exact time.
+  
+* The speed of the consumer can be increased by way of creatings files for 5-10 secs for each table while collecting data from topic and send it after that.
+      * I would suggest usage of Max heap data structure for that where the one file that has spent max time in consumer is sent first to azure
+
+
+
+
+
+
+

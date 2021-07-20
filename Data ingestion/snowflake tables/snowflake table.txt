@@ -1,0 +1,26 @@
+create database covid_dataset;
+use database covid_dataset;
+use role sysadmin;
+use schema public;
+use warehouse compute_wh;
+Alter warehouse compute_wh resume;
+
+//table containing raw data
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."FULL_GROUPED" ("DATE" DATE, "Country/Region" STRING, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New Cases" INTEGER, "New Deaths" INTEGER, "New Recovered" INTEGER, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 1';
+//table containing aggregated data
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."FULL_GROUPED_AGGREGATED" ("DATE" DATE, "Country/Region" STRING, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New Cases" INTEGER, "New Deaths" INTEGER, "New Recovered" INTEGER, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 1';
+
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST" ("Country/Region" STRING, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New Cases" INTEGER, "New Deaths" INTEGER, "New Recovered" INTEGER, "Deaths/100 cases" STRING, "Recovered/100 cases" STRING, "Deaths/100 Recovered" STRING, "Confirmed last week" INTEGER, "One week change" INTEGER, "One week % increase" STRING, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 2';
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST_AGGREGATED" ("Country/Region" STRING, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New Cases" INTEGER, "New Deaths" INTEGER, "New Recovered" INTEGER, "Deaths/100 cases" STRING, "Recovered/100 cases" STRING, "Deaths/100 Recovered" STRING, "Confirmed last week" INTEGER, "One week change" INTEGER, "One week % increase" STRING, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 2';
+
+
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."DAY_WISE" ("DATE" DATE, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New cases" INTEGER, "New deaths" INTEGER, "New recovered" INTEGER, "Deaths/100 cases" STRING, "Recovered/100 cases" STRING, "Deaths/100 Recovered" STRING, "Number of countries" INTEGER, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 4';
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."DAY_WISE_AGGREGATED" ("DATE" DATE, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "New cases" INTEGER, "New deaths" INTEGER, "New recovered" INTEGER, "Deaths/100 cases" STRING, "Recovered/100 cases" STRING, "Deaths/100 Recovered" STRING, "Number of countries" INTEGER, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 4';
+
+
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA" ("Country/region" STRING, "CONTINENT" STRING, "POPULATION" INTEGER, "Total cases" INTEGER, "New cases" INTEGER, "Total deaths" INTEGER, "New deaths" INTEGER, "Total recovered" INTEGER, "New recovered" INTEGER, "Active cases" INTEGER, "Serious/critical" STRING, "Total cases/1 M population" STRING, "Deaths/1 M population" STRING, "Total tests" INTEGER, "Tests/1 M population" STRING, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 5';
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA_AGGREGATED" ("Country/region" STRING, "CONTINENT" STRING, "POPULATION" INTEGER, "Total cases" INTEGER, "New cases" INTEGER, "Total deaths" INTEGER, "New deaths" INTEGER, "Total recovered" INTEGER, "New recovered" INTEGER, "Active cases" INTEGER, "Serious/critical" STRING, "Total cases/1 M population" STRING, "Deaths/1 M population" STRING, "Total tests" INTEGER, "Tests/1 M population" STRING, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 5';
+
+
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE" ("PROVINCE" STRING, "Country/Region" STRING, "LATITUDE" STRING, "LONGITUDE" STRING, "DATE" DATE, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 3';
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE_AGGREGATED" ("PROVINCE" STRING, "Country/Region" STRING, "LATITUDE" STRING, "LONGITUDE" STRING, "DATE" DATE, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 3';

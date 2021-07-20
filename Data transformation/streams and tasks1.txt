@@ -1,0 +1,44 @@
+
+//created a stream on raw table
+create or replace stream country_wise_latest_stream on table "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST";
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('country_wise_latest_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('country_wise_latest_stream')) as stream_offset;
+
+//Data from raw table
+select * from country_wise_latest;
+
+truncate table country_wise_latest;
+
+//Data in the streams
+select * from country_wise_latest_stream;
+
+//Running Task
+create or replace task country_wise_latest_task
+    warehouse = compute_wh 
+    schedule  = '1 minute'
+  when
+    system$stream_has_data('country_wise_latest_stream')
+  as
+  //comapred key value pairs and making the required changes updation or insertion
+    merge into country_wise_latest_aggregated n
+    using (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17 from country_wise_latest_stream)r1 on n.$1=r1.$1
+    when matched then update set n.$2=r1.$2+n.$2, n.$3=r1.$3+n.$3, n.$4=r1.$4+n.$4,n.$5=r1.$5+n.$5,n.$6=r1.$6+n.$6,n.$7=r1.$7+n.$7,n.$8=r1.$8+n.$8,n.$9=r1.$9,n.$10=r1.$10,n.$11=r1.$11,n.$12=r1.$12,n.$13=r1.$13,n.$14=r1.$14,n.$15=r1.$15,n.$16=r1.$16,n.$17=r1.$17
+    when not matched then insert values (r1.$1,r1.$2,r1.$3,r1.$4,r1.$5,r1.$6,r1.$7,r1.$8,r1.$9,r1.$10,r1.$11,r1.$12,r1.$13,r1.$14,r1.$15,r1.$16,r1.$17)
+;
+
+//desc task
+desc task country_wise_latest_task;
+
+//resume task
+alter task country_wise_latest_task resume;
+
+//suspend task
+alter task country_wise_latest_task suspend;
+
+//Aggregated table
+select * from "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST_AGGREGATED";
+truncate table "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST_AGGREGATED";
+
+///end of table 1

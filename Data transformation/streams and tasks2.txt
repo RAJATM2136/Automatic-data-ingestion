@@ -1,0 +1,43 @@
+create or replace stream covid_19_clean_complete_stream on table "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE";
+
+SHOW STREAMS;
+
+DESCRIBE STREAM covid_19_clean_complete_stream;
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('covid_19_clean_complete_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('covid_19_clean_complete_stream')) as stream_offset;
+
+select * from "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE";
+
+  copy into "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE"
+  from (
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,current_timestamp(3) from @covid_19_clean_complete_stage)
+ ;
+truncate table "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE";
+
+select * from covid_19_clean_complete_stream;
+
+create or replace task covid_19_clean_complete_task
+    warehouse = compute_wh 
+    schedule  = '1 minute'
+  when
+    system$stream_has_data('covid_19_clean_complete_stream')
+  as
+    merge into COVID_19_CLEAN_COMPLETE_AGGREGATED n
+    using (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12 from covid_19_clean_complete_stream)r1 on n.$1=r1.$1 and n.$2=r1.$2 and n.$5=r1.$5
+    when matched then update set n.$6=n.$6+r1.$6,n.$7=n.$7+r1.$7,n.$8=n.$8+r1.$8,n.$9=n.$9+r1.$9
+    when not matched then insert values(r1.$1,r1.$2,r1.$3,r1.$4,r1.$5,r1.$6,r1.$7,r1.$8,r1.$9,r1.$10,r1.$11,$12)
+;
+CREATE or replace TABLE "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE_AGGREAGTED" ("PROVINCE" STRING, "Country/Region" STRING, "LATITUDE" STRING, "LONGITUDE" STRING, "DATE" DATE, "CONFIRMED" INTEGER, "DEATHS" INTEGER, "RECOVERED" INTEGER, "ACTIVE" INTEGER, "WHO Region" STRING, "Time Stamp" STRING, "Time Stamp 2" STRING) COMMENT = 'Table 3';
+
+desc task covid_19_clean_complete_task;
+
+alter task covid_19_clean_complete_task resume;
+
+select * from "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE_AGGREGATED";
+
+alter task covid_19_clean_complete_task suspend;
+
+truncate table "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE_AGGREGATED";
+

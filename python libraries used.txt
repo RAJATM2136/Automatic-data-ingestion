@@ -1,0 +1,32 @@
+Python libraries:
+
+kafka-python : https://kafka-python.readthedocs.io/en/master/install.html
+
+Datetime
+
+csv
+
+json
+
+time
+
+pytz
+
+os
+
+configparser
+
+Azure.storage.blob
+
+cryptography.fernet
+
+snowflake-connector for python
+
+pandavro
+
+pandas
+
+multiset
+
+matplotlib
+

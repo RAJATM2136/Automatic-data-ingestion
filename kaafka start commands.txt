@@ -1,0 +1,33 @@
+zookeeper start cmd: .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+
+zookeeper localhost:2181
+
+server start cmd: .\bin\windows\kafka-server-start.bat .\config\server.properties
+
+topic creation: .\bin\windows\kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic mangal
+
+topics present currently:.\bin\windows\kafka-topics.bat --list --zookeeper localhost:2181
+
+producer: .\bin\windows\kafka-console-producer.bat --broker-list localhost:9092 --topic TestTopic
+
+consumer: .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic TestTopic --from-beginning
+
+meeting link:https://teams.microsoft.com/l/meetup-join/19%3ameeting_ZWNhOTVjNWItNjU2MS00NjU4LTlhMjgtZWNmOWExMmEwMDA0%40thread.v2/0?context=%7b%22Tid%22%3a%22db05faca-c82a-4b9d-b9c5-0f64b6755421%22%2c%22Oid%22%3a%22d4464c4f-e9e9-4e7d-b1a2-552c508d5be9%22%7d
+
+rajat snowflake account:https://jd43587.west-us-2.azure.snowflakecomputing.com/console#/internal/worksheet
+username:rajatm2136
+password:Guru@1234
+
+work{
+
+}
+
+ram
+Guruji@1234
+kachra
+
+server:
+azureuser
+Optum#2021
+
+fernet_key='VlUVeecxDDQTIsdD3fK4J1yuNr0QsPO0kBGU-6yEZxQ='

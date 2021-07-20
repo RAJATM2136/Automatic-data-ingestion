@@ -1,0 +1,36 @@
+//created a stream for the raw data table
+create or replace stream worldometer_data_stream on table "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA";
+
+SELECT SYSTEM$STREAM_GET_TABLE_TIMESTAMP('worldometer_data_stream');
+
+SELECT to_timestamp(SYSTEM$STREAM_GET_TABLE_TIMESTAMP('worldometer_data_stream')) as stream_offset;
+
+select * from "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA";
+ 
+truncate table "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA";
+
+select * from worldometer_data_stream;
+
+create or replace task worldometer_data_task
+    warehouse = compute_wh 
+    schedule  = '1 minute'
+  when
+    system$stream_has_data('worldometer_data_stream')
+  as
+    merge into "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA_AGGREGATED" n
+    using (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18 from worldometer_data_stream)r1 on n.$1=r1.$1
+    when matched then update set n.$2=r1.$2, n.$3=r1.$3, n.$4=r1.$4+n.$4,n.$5=r1.$5,n.$6=r1.$6+n.$6,n.$7=r1.$7,n.$8=r1.$8+n.$8,n.$9=r1.$9,n.$10=r1.$10+n.$10,n.$11=r1.$11,n.$12=r1.$12,n.$13=r1.$13,n.$14=r1.$14,n.$15=r1.$15,n.$16=r1.$16,n.$17=r1.$17,n.$18=r1.$18
+    when not matched then insert values (r1.$1,r1.$2,r1.$3,r1.$4,r1.$5,r1.$6,r1.$7,r1.$8,r1.$9,r1.$10,r1.$11,r1.$12,r1.$13,r1.$14,r1.$15,r1.$16,r1.$17,r1.$18)
+;
+desc task worldometer_data_task;
+
+SHOW STREAMS;
+
+DESCRIBE STREAM worldometer_data_stream;
+
+alter task worldometer_data_task resume;
+
+alter task worldometer_data_task suspend;
+
+select * from "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA_AGGREGATED";
+truncate table "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA_AGGREGATED";

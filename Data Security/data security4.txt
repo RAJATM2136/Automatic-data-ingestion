@@ -1,0 +1,132 @@
+--TABLE- WORLDOMETER
+--using role,database,schema
+use role accountadmin;
+use database covid_dataset;
+use schema public;
+
+--create configuration table
+create or replace table config_worldometer_table_india( role_name varchar, region varchar);
+insert into config_worldometer_table_india values ('pmo_india_wm','India');
+
+create or replace table config_worldometer_table_brics( role_name varchar, region varchar);
+insert into config_worldometer_table_brics values ('BRICS_WM','India');
+insert into config_worldometer_table_brics values ('BRICS_WM','Brazil');
+insert into config_worldometer_table_brics values ('BRICS_WM','China');
+insert into config_worldometer_table_brics values ('BRICS_WM','Russia');
+insert into config_worldometer_table_brics values ('BRICS_WM','South Africa');
+
+create or replace table config_worldometer_table_saarc( role_name varchar, region varchar);
+insert into config_worldometer_table_saarc values ('SAARC_WM','India');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Nepal');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Pakistan');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Bangladesh');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Afghanistan');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Maldives');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Bhutan');
+insert into config_worldometer_table_saarc values ('SAARC_WM','Sri Lanka');
+
+--creating roles
+select * from worldometer_data;
+select * from config_worldometer_table_india;
+select * from config_worldometer_table_brics;
+select * from config_worldometer_table_saarc;
+
+create role pmo_india_wm;
+create role brics_wm;
+create role saarc_wm;
+create role who_wm;
+
+--create secure view
+create or replace secure view sv_worldometer_data as
+select * 
+from worldometer_data
+where "Country/region" in (
+	select region from config_worldometer_table_india
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_worldometer_data_brics as
+select * 
+from worldometer_data
+where "Country/region" in (
+	select region from config_worldometer_table_brics
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_worldometer_data_saarc as
+select * 
+from worldometer_data
+where "Country/region" in (
+	select region from config_worldometer_table_saarc
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_worldometer_data_who as
+select * 
+from worldometer_data
+;
+
+--grant permissions
+use role sysadmin;
+grant usage on warehouse compute_wh to role pmo_india_wm;
+grant usage on warehouse compute_wh to role brics_wm;
+grant usage on warehouse compute_wh to role saarc_wm;
+grant usage on warehouse compute_wh to role who_wm;
+
+grant usage on database covid_dataset to role pmo_india_wm;
+grant usage on database covid_dataset to role brics_wm;
+grant usage on database covid_dataset to role saarc_wm;
+grant usage on database covid_dataset to role who_wm;
+
+grant usage on schema public to role pmo_india_wm;
+grant usage on schema public to role brics_wm;
+grant usage on schema public to role saarc_wm;
+grant usage on schema public to role who_wm;
+
+--grant view
+use role accountadmin;
+grant select on view sv_worldometer_data_india to role pmo_india_wm ;
+grant select on view sv_worldometer_data_brics to role brics_wm ;
+grant select on view sv_worldometer_data_saarc to role saarc_wm ;
+grant select on view sv_worldometer_data_who to role who_wm ;
+
+--create username and password
+create or replace user pmo_india_wm PASSWORD = 'ind004' COMMENT='created this user to check row level security'
+LOGIN_NAME='ind_wm_user' DISPLAY_NAME='INDWM' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user brics_wm PASSWORD = 'brics004' COMMENT='created this user to check row level security'
+LOGIN_NAME='brics_wm_user' DISPLAY_NAME='BRICSWM' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user saarc_wm PASSWORD = 'saarc004' COMMENT='created this user to check row level security'
+LOGIN_NAME='saarc_wm_user' DISPLAY_NAME='SAARCWM' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user who_wm PASSWORD = 'who004' COMMENT='created this user to check row level security'
+LOGIN_NAME='who_wm_user' DISPLAY_NAME='WHOWM' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+--grant role
+grant role pmo_india_wm to user pmo_india_wm ;
+grant role brics_wm to user brics_wm ;
+grant role saarc_wm to user saarc_wm ;
+grant role who_wm to user who_wm ;
+
+-------
+--new worksheet 
+select current_role();
+use role pmo_india_wm;
+select * from covid_dataset.public.sv_worldometer_data_india;
+
+select current_role();
+use role brics_wm;
+select * from covid_dataset.public.sv_worldometer_data_brics;
+
+select current_role();
+use role saarc_wm;
+select * from covid_dataset.public.sv_worldometer_data_saarc;
+
+select current_role();
+use role who_wm;
+select * from covid_dataset.public.sv_worldometer_data_who;

@@ -1,0 +1,82 @@
+//creating notification intergration
+create or replace notification integration azureintegration
+  enabled = true
+  type = queue
+  notification_provider = azure_storage_queue
+  azure_storage_queue_primary_uri = 'https://ashwinstorage.queue.core.windows.net/ingestionq'
+  azure_tenant_id = '311bd0d6-0163-4fe0-99c5-9c453d609df3';
+  
+//connecting intergration with external stage  
+CREATE OR REPLACE STAGE "COVID_DATASET"."PUBLIC".country_wise_latest_stage 
+URL = 'azure://ashwinstorage.blob.core.windows.net/country-wise-latest-container' 
+CREDENTIALS = (AZURE_SAS_TOKEN = '?sp=racwdl&st=2021-07-08T13:45:26Z&se=2021-08-11T21:45:26Z&spr=https&sv=2020-08-04&sr=c&sig=PdBA%2FVuWhllU9rin7ipT86GqUP8entH5%2F1qE88hjKgs%3D');
+
+//Snowpipe's automatic loading data into Snowflake Tables
+create OR REPLACE pipe country_wise_latest_pipe
+  auto_ingest = true
+  integration = azureintegration
+  as
+  copy into "COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST"
+  from 
+    (select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,current_timestamp(3) from @country_wise_latest_stage)
+ 
+  ;  
+
+CREATE OR REPLACE STAGE "COVID_DATASET"."PUBLIC".covid_19_clean_complete_stage URL = 'azure://ashwinstorage.blob.core.windows.net/covid-19-clean-complete-container' CREDENTIALS = (AZURE_SAS_TOKEN = '?sp=racwdl&st=2021-07-08T13:50:35Z&se=2021-08-12T21:50:35Z&spr=https&sv=2020-08-04&sr=c&sig=%2FDZruaTXnlD7GgduWnTT1FG6C80GjiBW6bthRhDUEFs%3D');
+
+create OR REPLACE pipe covid_19_clean_complete_pipe
+  auto_ingest = true
+  integration = azureintegration
+  as
+  copy into "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE"
+  from (
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,current_timestamp(3) from @covid_19_clean_complete_stage)
+    
+    
+;
+//
+CREATE OR REPLACE STAGE "COVID_DATASET"."PUBLIC".day_wise_stage URL = 'azure://ashwinstorage.blob.core.windows.net/day-wise-container' CREDENTIALS = (AZURE_SAS_TOKEN = '?sp=racwdl&st=2021-07-08T13:52:34Z&se=2021-08-12T21:52:34Z&spr=https&sv=2020-08-04&sr=c&sig=gqeW%2B52kpzMqKL3BLRhU86lYgQtClxtUnN%2BI4FxeukI%3D');
+
+create OR REPLACE pipe day_wise_pipe
+  auto_ingest = true
+  integration = azureintegration
+  as
+  copy into "COVID_DATASET"."PUBLIC"."DAY_WISE"
+  from (
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,current_timestamp(3) from @day_wise_stage)
+    
+;
+CREATE OR REPLACE STAGE "COVID_DATASET"."PUBLIC".full_grouped_stage URL = 'azure://ashwinstorage.blob.core.windows.net/full-grouped-container' CREDENTIALS = (AZURE_SAS_TOKEN = '?sp=racwdl&st=2021-07-08T13:56:52Z&se=2021-08-13T21:56:52Z&spr=https&sv=2020-08-04&sr=c&sig=eyXCMcjf6so6P9BDyx%2FWKBYAW3tWw3n4lcDR4lH2%2F5g%3D');
+
+create OR REPLACE pipe full_grouped_pipe
+  auto_ingest = true
+  integration = azureintegration
+  as
+  copy into "COVID_DATASET"."PUBLIC"."FULL_GROUPED"
+  from (
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,current_timestamp(3) from @full_grouped_stage)
+;
+
+CREATE OR REPLACE STAGE "COVID_DATASET"."PUBLIC".worldometer_data_stage URL = 'azure://ashwinstorage.blob.core.windows.net/worldometer-data-container' CREDENTIALS = (AZURE_SAS_TOKEN = '?sp=racwdl&st=2021-07-08T14:02:06Z&se=2021-08-13T22:02:06Z&spr=https&sv=2020-08-04&sr=c&sig=y07LRvh70Cz6S57i%2Fcz00bTaXy9d1gjKyCNw12E1CvM%3D');
+
+create OR REPLACE pipe worldometer_data_pipe
+  auto_ingest = true
+  integration = azureintegration
+  as
+  copy into "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA"
+  from (
+    select $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,current_timestamp(3) from @worldometer_data_stage)
+;
+TRUNCATE TABLE COUNTRY_WISE_LATEST;
+truncate table "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE";
+truncate table "COVID_DATASET"."PUBLIC"."DAY_WISE";
+truncate table "COVID_DATASET"."PUBLIC"."FULL_GROUPED";
+truncate table "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA";
+
+select * from country_wise_latest;
+select * from "COVID_DATASET"."PUBLIC"."COVID_19_CLEAN_COMPLETE";
+select * from "COVID_DATASET"."PUBLIC"."DAY_WISE";
+select * from "COVID_DATASET"."PUBLIC"."FULL_GROUPED";
+select * from "COVID_DATASET"."PUBLIC"."WORLDOMETER_DATA";
+
+

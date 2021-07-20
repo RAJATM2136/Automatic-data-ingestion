@@ -1,0 +1,132 @@
+--TABLE-FULL GROUPED
+--using role,database,schema
+use role accountadmin;
+use database covid_dataset;
+use schema public;
+
+--create configuration table
+create or replace table config_grouped_table_india( role_name varchar, region varchar);
+insert into config_grouped_table_india values ('PMO_INDIA_FG','India');
+
+create or replace table config_grouped_table_brics( role_name varchar, region varchar);
+insert into config_grouped_table_brics values ('BRICS_FG','India');
+insert into config_grouped_table_brics values ('BRICS_FG','Brazil');
+insert into config_grouped_table_brics values ('BRICS_FG','China');
+insert into config_grouped_table_brics values ('BRICS_FG','Russia');
+insert into config_grouped_table_brics values ('BRICS_FG','South Africa');
+
+create or replace table config_grouped_table_saarc( role_name varchar, region varchar);
+insert into config_grouped_table_saarc values ('SAARC_FG','India');
+insert into config_grouped_table_saarc values ('SAARC_FG','Nepal');
+insert into config_grouped_table_saarc values ('SAARC_FG','Pakistan');
+insert into config_grouped_table_saarc values ('SAARC_FG','Bangladesh');
+insert into config_grouped_table_saarc values ('SAARC_FG','Afghanistan');
+insert into config_grouped_table_saarc values ('SAARC_FG','Maldives');
+insert into config_grouped_table_saarc values ('SAARC_FG','Bhutan');
+insert into config_grouped_table_saarc values ('SAARC_FG','Sri Lanka');
+
+--creating roles
+select * from full_grouped;
+select * from config_grouped_table_india;
+select * from config_grouped_table_brics;
+select * from config_grouped_table_saarc;
+
+create role pmo_india_fg;
+create role brics_fg;
+create role saarc_fg;
+create role who_fg;
+
+--create secure view
+create or replace secure view sv_full_grouped_india as
+select * 
+from full_grouped
+where "Country/Region" in (
+	select region from config_grouped_table_india
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_full_grouped_brics as
+select * 
+from full_grouped
+where "Country/Region" in (
+	select region from config_grouped_table_brics
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_full_grouped_saarc as
+select * 
+from full_grouped
+where "Country/Region" in (
+	select region from config_grouped_table_saarc
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_full_grouped_who as
+select * 
+from full_grouped
+;
+
+--grant permissions
+use role sysadmin;
+grant usage on warehouse compute_wh to role pmo_india_fg;
+grant usage on warehouse compute_wh to role brics_fg;
+grant usage on warehouse compute_wh to role saarc_fg;
+grant usage on warehouse compute_wh to role who_fg;
+
+grant usage on database covid_dataset to role pmo_india_fg;
+grant usage on database covid_dataset to role brics_fg;
+grant usage on database covid_dataset to role saarc_fg;
+grant usage on database covid_dataset to role who_fg;
+
+grant usage on schema public to role pmo_india_fg;
+grant usage on schema public to role brics_fg;
+grant usage on schema public to role saarc_fg;
+grant usage on schema public to role who_fg;
+
+--grant view
+use role accountadmin;
+grant select on view sv_full_grouped_india to role pmo_india_fg ;
+grant select on view sv_full_grouped_brics to role brics_fg ;
+grant select on view sv_full_grouped_saarc to role saarc_fg ;
+grant select on view sv_full_grouped_who to role who_fg ;
+
+--create username and password
+create or replace user pmo_india_fg PASSWORD = 'ind003' COMMENT='created this user to check row level security'
+LOGIN_NAME='ind_fg_user' DISPLAY_NAME='INDCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user brics_fg PASSWORD = 'brics003' COMMENT='created this user to check row level security'
+LOGIN_NAME='brics_fg_user' DISPLAY_NAME='BRICSCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user saarc_fg PASSWORD = 'saarc003' COMMENT='created this user to check row level security'
+LOGIN_NAME='saarc_fg_user' DISPLAY_NAME='SAARCCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user who_fg PASSWORD = 'who003' COMMENT='created this user to check row level security'
+LOGIN_NAME='who_fg_user' DISPLAY_NAME='WHOCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+--grant role
+grant role pmo_india_fg to user pmo_india_fg ;
+grant role brics_fg to user brics_fg ;
+grant role saarc_fg to user saarc_fg ;
+grant role who_fg to user who_fg ;
+
+-------
+--new worksheet 
+select current_role();
+use role pmo_india_fg;
+select * from covid_dataset.public.sv_full_grouped_india;
+
+select current_role();
+use role brics_fg;
+select * from covid_dataset.public.sv_full_grouped_brics;
+
+select current_role();
+use role saarc_fg;
+select * from covid_dataset.public.sv_full_grouped_saarc;
+
+select current_role();
+use role who_fg;
+select * from covid_dataset.public.sv_full_grouped_who;

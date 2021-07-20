@@ -1,0 +1,135 @@
+--TABLE 1-COUNTRY WISE LATEST
+--using role,database,schema
+use role accountadmin;
+use database covid_dataset;
+use schema public;
+
+--create configuration table
+create or replace table config_country_table_india( role_name varchar, region varchar);
+insert into config_country_table_india values ('PMO_INDIA_CWL','India');
+
+create or replace table config_country_table_brics( role_name varchar, region varchar);
+insert into config_country_table_brics values ('BRICS_CWL','India');
+insert into config_country_table_brics values ('BRICS_CWL','Brazil');
+insert into config_country_table_brics values ('BRICS_CWL','China');
+insert into config_country_table_brics values ('BRICS_CWL','Russia');
+insert into config_country_table_brics values ('BRICS_CWL','South Africa');
+
+create or replace table config_country_table_saarc( role_name varchar, region varchar);
+insert into config_country_table_saarc values ('SAARC_CWL','India');
+insert into config_country_table_saarc values ('SAARC_CWL','Nepal');
+insert into config_country_table_saarc values ('SAARC_CWL','Pakistan');
+insert into config_country_table_saarc values ('SAARC_CWL','Bangladesh');
+insert into config_country_table_saarc values ('SAARC_CWL','Afghanistan');
+insert into config_country_table_saarc values ('SAARC_CWL','Maldives');
+insert into config_country_table_saarc values ('SAARC_CWL','Bhutan');
+insert into config_country_table_saarc values ('SAARC_CWL','Sri Lanka');
+
+--creating roles
+select * from country_wise_latest;
+select * from config_country_table_india;
+select * from config_country_table_brics;
+select * from config_country_table_saarc;
+
+--create roles
+create role pmo_india_cwl;
+create role brics_cwl;
+create role saarc_cwl;
+create role who_cwl;
+
+--create secure view
+create or replace secure view sv_country_wise_latest_india as
+select * 
+from country_wise_latest
+where "Country/Region" in (
+	select region from config_country_table_india
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_country_wise_latest_brics as
+select * 
+from country_wise_latest
+where "Country/Region" in (
+	select region from config_country_table_brics
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_country_wise_latest_saarc as
+select * 
+from country_wise_latest
+where "Country/Region" in (
+	select region from config_country_table_saarc
+	where role_name = CURRENT_ROLE()
+);
+
+create or replace secure view sv_country_wise_latest_who as
+select * 
+from country_wise_latest
+;
+
+
+--grant permissions"COVID_DATASET"."PUBLIC"."COUNTRY_WISE_LATEST"
+use role sysadmin;
+grant usage on warehouse compute_wh to role pmo_india_cwl;
+grant usage on warehouse compute_wh to role brics_cwl;
+grant usage on warehouse compute_wh to role saarc_cwl;
+grant usage on warehouse compute_wh to role who_cwl;
+
+
+grant usage on database covid_dataset to role pmo_india_cwl;
+grant usage on database covid_dataset to role brics_cwl;
+grant usage on database covid_dataset to role saarc_cwl;
+grant usage on database covid_dataset to role who_cwl;
+
+grant usage on schema public to role pmo_india_cwl;
+grant usage on schema public to role brics_cwl;
+grant usage on schema public to role saarc_cwl;
+grant usage on schema public to role who_cwl;
+
+--grant view
+use role accountadmin;
+grant select on view sv_country_wise_latest_india to role pmo_india_cwl ;
+grant select on view sv_country_wise_latest_brics to role brics_cwl ;
+grant select on view sv_country_wise_latest_saarc to role saarc_cwl ;
+grant select on view sv_country_wise_latest_who to role who_cwl ;
+
+--create username and password
+create or replace user pmo_india_cwl PASSWORD = 'ind001' COMMENT='created this user to check row level security'
+LOGIN_NAME='ind_cwl_user' DISPLAY_NAME='INDCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user brics_cwl PASSWORD = 'brics001' COMMENT='created this user to check row level security'
+LOGIN_NAME='brics_cwl_user' DISPLAY_NAME='BRICSCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user saarc_cwl PASSWORD = 'saarc001' COMMENT='created this user to check row level security'
+LOGIN_NAME='saarc_cwl_user' DISPLAY_NAME='SAARCCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+create or replace user who_cwl PASSWORD = 'who001' COMMENT='created this user to check row level security'
+LOGIN_NAME='who_cwl_user' DISPLAY_NAME='WHOCWL' DEFAULT_ROLE="PUBLIC"
+MUST_CHANGE_PASSWORD= FALSE;
+
+--grant role
+grant role pmo_india_cwl to user pmo_india_cwl ;
+grant role brics_cwl to user brics_cwl ;
+grant role saarc_cwl to user saarc_cwl ;
+grant role who_cwl to user who_cwl;
+-------
+--new worksheet 
+select current_role();
+use role pmo_india_cwl;
+select * from covid_dataset.public.sv_country_wise_latest_india;
+
+select current_role();
+use role brics_cwl;
+select * from covid_dataset.public.sv_country_wise_latest_brics;
+
+select current_role();
+use role saarc_cwl;
+select * from covid_dataset.public.sv_country_wise_latest_saarc;
+
+select current_role();
+use role who_cwl;
+select * from covid_dataset.public.sv_country_wise_latest_who;
+
